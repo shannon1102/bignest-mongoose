@@ -1,3 +1,4 @@
+import { TransactionService } from './../../book/transactionService';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Connection } from 'mongoose';
 import { catchError, Observable, tap, throwError } from "rxjs";
@@ -6,36 +7,33 @@ import * as mongoose from 'mongoose';
 
 @Injectable()
 export class TransactionInterceptor implements NestInterceptor {
-
     constructor(
-        @InjectConnection()
-        private connection: Connection
-    ) { }
+        @InjectConnection() private connection: Connection,
+        private readonly transactionService: TransactionService
 
-    async intercept(
-        context: ExecutionContext,
-        next: CallHandler
-    ): Promise<Observable<any>> {
-        const transactionSession = await this.connection.startSession();
+    ) {
+        console.log("Init Transaction");
+     }
+
+    async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
         const httpContext = context.switchToHttp();
         const req = httpContext.getRequest();
+        const session = await this.connection.startSession();
+        session.startTransaction();
+        req.transaction = session;
+        this.transactionService.setSession(session);
 
-        transactionSession.startTransaction();
-        req.transaction = transactionSession;
-        console.log("Aloo")
         return next.handle()
             .pipe(
                 tap(() => {
-
-                    transactionSession.commitTransaction();
-                    console.log("Committed")
-                    transactionSession.endSession();
-                    // console.log(transactionSession)
+                    // this.transactionService.getSession().commitTransaction()
+                    session.commitTransaction()
+                    console.log("Thanh cong")
                 }),
                 catchError(err => {
-                    console.log("Rollback")
-                    transactionSession.abortTransaction();
-                    transactionSession.endSession();
+                    // this.transactionService.getSession().abortTransaction()
+                    session.abortTransaction()
+                    console.log('ERROR');
                     return throwError(() => err);
                 }),
 

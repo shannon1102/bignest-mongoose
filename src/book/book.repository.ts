@@ -1,3 +1,6 @@
+import { Genre } from './../genre/genre.model';
+
+import { TransactionInterceptor } from './../common/interceptor/transaction.interceptor';
 import { InjectConnection } from '@nestjs/mongoose';
 import { throwError } from 'rxjs';
 import { BaseRepository } from 'src/base/base.repository';
@@ -5,23 +8,36 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Book } from "./book.model";
 import * as mongoose from 'mongoose';
-export class BookRepository extends BaseRepository<Book>{
+import { TransactionService } from './transactionService';
+export class BookRepository {
     constructor(@InjectModel(Book.name) private readonly bookModel: Model<Book>,
-    ) {
-        super(bookModel)
-    }
+        private readonly transactionService: TransactionService
 
-    async createMany(items: Book[]) {
-    
+    ) {
+
+    }
+    async create(items: Book, session: mongoose.ClientSession) {
+
         try {
-            for (let i = 0; i < items.length; i++) {
-                await this.create(items[i])
-            }
-            return "OKIE"
+            const newGenre = new Genre({name: "genre1"})
+
+            await new this.bookModel(items).save({ session: session });
+
         } catch (e) {
             throw new Error('Error insert many books');
         }
     }
+
+    // async createMany(items: Book[]) {
+
+    //     try {
+    //         for (let i = 0; i < items.length; i++) {
+    //             await this.create(items[i])
+    //         }
+    //     } catch (e) {
+    //         throw new Error('Error insert many books');
+    //     }
+    // }
 }
 
 

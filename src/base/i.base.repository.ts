@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Base } from "./base.interface";
 
 export interface IBaseRepository<T extends Base> {
@@ -6,7 +7,7 @@ export interface IBaseRepository<T extends Base> {
 
     findOne(id: any): Promise<T>;
 
-    create(item: T): Promise<T>;
+    create(item: T,session : mongoose.ClientSession): Promise<T>;
 
     update(id: string, item: T);
 
