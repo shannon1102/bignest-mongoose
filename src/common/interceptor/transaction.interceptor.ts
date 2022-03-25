@@ -1,9 +1,9 @@
-import { TransactionService } from './../../book/transactionService';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Connection } from 'mongoose';
 import { catchError, Observable, tap, throwError } from "rxjs";
 import { InjectConnection } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
+import { TransactionService } from "../globals/transactionService";
 
 @Injectable()
 export class TransactionInterceptor implements NestInterceptor {
@@ -21,19 +21,17 @@ export class TransactionInterceptor implements NestInterceptor {
         const session = await this.connection.startSession();
         session.startTransaction();
         req.transaction = session;
-        this.transactionService.setSession(session);
+        this.transactionService.initSession(session);
 
         return next.handle()
             .pipe(
                 tap(() => {
-                    // this.transactionService.getSession().commitTransaction()
-                    session.commitTransaction()
-                    console.log("Thanh cong")
+                    this.transactionService.getSession().commitTransaction()
+                    console.log("Committed")
                 }),
                 catchError(err => {
-                    // this.transactionService.getSession().abortTransaction()
-                    session.abortTransaction()
-                    console.log('ERROR');
+                    this.transactionService.getSession().abortTransaction()
+                    console.log("Error and rollback");
                     return throwError(() => err);
                 }),
 

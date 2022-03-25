@@ -16,7 +16,6 @@ export class BaseRepository<T extends Base> implements IBaseRepository<T>{
     //     } catch (error) {
     //         throw new Error('Error');
     //     }
-
     // };
     create(item: T,session : mongoose.ClientSession): Promise<T> {
         throw new Error('Method not implemented.');

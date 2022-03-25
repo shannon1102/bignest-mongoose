@@ -1,7 +1,6 @@
 import { GenreDto } from './genre.dto';
 
 import { ClientSessionOptions } from 'http2';
-import { Model } from 'mongoose';
 import mongoose from 'mongoose';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,7 +14,10 @@ export class GenreService {
     private readonly genreRepository: GenreRepository
   ) {
   }
-  async create(createGenreDto: Genre, session: mongoose.ClientSession) {
-    return await this.genreRepository.create(createGenreDto,session)
+  async create(createGenreDto: GenreDto) {
+    return await this.genreRepository.create(createGenreDto)
+  }
+  async findAll() {
+    return await this.genreRepository.findAll()
   }
 }
